@@ -50,7 +50,7 @@ def get_chain(
     {context}
     
     Question: {question}
-    Helpful Answer(務必以繁體中文回答,1500字):"""
+    Helpful Answer(以繁體中文言簡意駭地回答,1500字):"""
     QA_PROMPT = PromptTemplate(
     template=prompt_template, input_variables=["context","question"]
     )
