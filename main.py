@@ -1,4 +1,9 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 """Main entrypoint for the app."""
+import os
+import datetime
 import logging
 import pickle
 from pathlib import Path
@@ -16,6 +21,23 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 vectorstore: Optional[VectorStore] = None
 
+# Define the directory for the chat history files
+CHAT_HISTORY_DIR = "chat_history"
+
+# Create the directory if it doesn't exist
+if not os.path.exists(CHAT_HISTORY_DIR):
+    os.mkdir(CHAT_HISTORY_DIR)
+
+# Get today's date in the format of year, month, and day
+today = datetime.date.today().strftime("%Y-%m-%d")
+
+# Define the path to the chat history file for today
+CHAT_HISTORY_FILE = f"{CHAT_HISTORY_DIR}/chathistory_{today}.txt"
+
+# Check if the chat history file exists and create it if it doesn't
+if not os.path.exists(CHAT_HISTORY_FILE):
+    with open(CHAT_HISTORY_FILE, "w") as f:
+        pass
 
 @app.on_event("startup")
 async def startup_event():
@@ -26,11 +48,9 @@ async def startup_event():
         global vectorstore
         vectorstore = pickle.load(f)
 
-
 @app.get("/")
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
 
 @app.websocket("/chat")
 async def websocket_endpoint(websocket: WebSocket):
@@ -61,6 +81,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
             end_resp = ChatResponse(sender="bot", message="", type="end")
             await websocket.send_json(end_resp.dict())
+            # Write the chat history to the file for today
+            with open(CHAT_HISTORY_FILE, "a") as f:
+                f.write(f"Q：{question}\nA：{result['answer']}\n")
         except WebSocketDisconnect:
             logging.info("websocket disconnect")
             break

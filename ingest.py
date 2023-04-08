@@ -1,18 +1,23 @@
-"""Load html from files, clean up, split, ingest into Weaviate."""
+from dotenv import load_dotenv
+load_dotenv()
+
 import pickle
 
 from langchain.document_loaders import ReadTheDocsLoader
+from langchain.document_loaders import DirectoryLoader
+from langchain.document_loaders import PagedPDFSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.faiss import FAISS
 
+loader = DirectoryLoader('', glob="pdfs/*.pdf", loader_cls=PagedPDFSplitter)
+
+pages = loader.load_and_split()
 
 def ingest_docs():
-    """Get documents from web pages."""
-    loader = ReadTheDocsLoader("langchain.readthedocs.io/en/latest/")
     raw_documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
+        chunk_size=400,
         chunk_overlap=200,
     )
     documents = text_splitter.split_documents(raw_documents)
