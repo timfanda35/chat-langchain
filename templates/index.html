@@ -51,7 +51,13 @@
         }
     </style>
     <script>
-        var endpoint = "ws://localhost:9000/chat";
+        var loc = window.location, new_uri; 
+        if (loc.protocol === "https:") { 
+            new_uri = "wss:"; 
+        } else { 
+            new_uri = "ws:"; 
+        } 
+        var endpoint = new_uri + "//" + loc.host + ":9000/chat";
         var ws = new WebSocket(endpoint);
         // Receive message from server word by word. Display the words as they are received.
         ws.onmessage = function (event) {
